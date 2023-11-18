@@ -56,6 +56,7 @@ public class OrderedPropertyIndexProviderTest extends AbstractQueryTest {
     
     @Test
     public void singleQueryRun() {
+        OrderedPropertyIndexProvider.resetHits();
         custom.starting();
         executeQuery("SELECT * FROM [oak:Unstructured]", SQL2);
         List<String> logs = custom.getLogs();
@@ -68,14 +69,17 @@ public class OrderedPropertyIndexProviderTest extends AbstractQueryTest {
     public void multipleQueryRuns() {
         final int executions = 16;
         final int trackEvery = 5;
-        final int numTraces = executions / trackEvery;
+        final int numTraces = executions / trackEvery + 1;
+        OrderedPropertyIndexProvider.resetHits();
         OrderedPropertyIndexProvider.setThreshold(trackEvery);
         List<String> expectedLogs = Collections.nCopies(numTraces, OrderedIndex.DEPRECATION_MESSAGE);
         custom.starting();
         for (int i = 0; i < executions; i++) {
             executeQuery("SELECT * FROM [oak:Unstructured]", SQL2);
         }
-        assertThat(custom.getLogs(), is(expectedLogs));
+        List<String> logs = custom.getLogs();
+        assertEquals(4, logs.size());
+        assertThat(logs, is(expectedLogs));
         custom.finished();
     }
 }
